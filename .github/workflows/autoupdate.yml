@@ -1,0 +1,50 @@
+name: Autoupdate
+
+on:
+  schedule:
+  - cron: '0 0 * * *'
+
+jobs:
+  autoupdate:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        exchange:
+        - binance
+        - binanceus
+        - binanceje
+        - bittrex
+        - coinbasepro
+
+    steps:
+    - name: Git checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 1
+
+    - name: Git checkout data branch
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 1
+        ref: ${{ matrix.exchange }}
+        path: ${{ matrix.exchange }}
+
+    - name: Setup Docker
+      uses: docker-practice/actions-setup-docker@master
+      with:
+        docker_version: 19.03
+        docker_channel: stable
+
+    - name: Update data
+      run: bash update.sh ${{ matrix.exchange }} 7
+
+    - name: Push changes
+      run: |
+          cd ${{ matrix.exchange }}
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add .
+          git commit -m "Autoupdate: $(date +%Y-%m-%d)"
+          git push
