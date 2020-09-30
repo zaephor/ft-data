@@ -18,13 +18,24 @@ function pairs {
 			rm "${x}"
 		fi
 	done
-	freqtrade list-pairs --exchange "${exchange}" --print-json --all | tee "${PWD}/${exchange}/pairs.new.json"
+	freqtrade list-pairs --exchange "${exchange}" --quote BTC ETH USD --print-json > "${PWD}/${exchange}/pairs.new.json"
 	mv "${PWD}/${exchange}/pairs.new.json" "${PWD}/${exchange}/pairs.json"
 }
+
+function containerCount {
+	docker ps -aq | wc -l
+}
+
 function download {
 	echo "Syncing ${exchange} for ${DAYS} days"
-	# TODO get more ticker times
-	freqtrade download-data --exchange "${exchange}" --days "${DAYS}"
+	TICKERS=$(freqtrade list-timeframes --exchange "${exchange}" -1)
+	for ticker in ${TICKERS}; do
+		while [[ $(containerCount) -ge $(nproc) ]]; do
+			sleep 1s
+		done
+		( freqtrade download-data --exchange "${exchange}" --days "${DAYS}" -t ${ticker} ) &
+		sleep 1s
+	done
 }
 
 pairs
