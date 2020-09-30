@@ -1,11 +1,15 @@
-name: Autoupdate
+name: Backfill
 
 on:
-  schedule:
-  - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      timerange:
+        description: 'Timerange'
+        required: true
+        default: '20200101-'
 
 jobs:
-  autoupdate:
+  backfill:
     runs-on: ubuntu-latest
 
     strategy:
@@ -38,7 +42,7 @@ jobs:
         docker_channel: stable
 
     - name: Update data
-      run: bash freq.sh update ${{ matrix.exchange }} 7
+      run: bash freq.sh backfill ${{ matrix.exchange }} ${{ github.event.inputs.timerange }}
 
     - name: Push changes
       run: |
