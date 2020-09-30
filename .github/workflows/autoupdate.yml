@@ -14,7 +14,6 @@ jobs:
         exchange:
         - binance
         - binanceus
-        - binanceje
         - bittrex
         - coinbasepro
 

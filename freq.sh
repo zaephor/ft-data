@@ -46,10 +46,11 @@ function backfill {
 	if [[ -z "${ARG}" ]]; then
 		ARG="20190101-"
 	fi
+	CONTAINER_LIMIT=$(( $(nproc) * 2 ))
 	echo "Syncing ${exchange} for ${ARG} days"
 	TICKERS=$(freqtrade list-timeframes --exchange "${exchange}" -1)
 	for ticker in ${TICKERS}; do
-		while [[ $(containerCount) -ge $(nproc) ]]; do
+		while [[ $(containerCount) -ge ${CONTAINER_LIMIT} ]]; do
 			sleep 1s
 		done
 		( freqtrade download-data --exchange "${exchange}" --timerange "${ARG}" -t ${ticker} ) &
